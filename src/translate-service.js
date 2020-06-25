@@ -1,8 +1,11 @@
-
+import { TranslateLoaderService } from './translate-loader';
 
 @automate.service({
     namespace: 'automate',
-    key: 'translateService'
+    key: 'translateService',
+    inject: {
+        '$loader': TranslateLoaderService
+    }
 })
 export class TranslateService extends automate.Service {
     constructor() {
@@ -10,11 +13,21 @@ export class TranslateService extends automate.Service {
         // available languages
         this.availableLanguageKeys = [];
         // current language
-        this.currentLanguageKey = this.resolveBrowserLanguage();
+        this.currentLanguageKey = '';
         // translation resource
         this.translationTable = {};
         // current language event
         this.languageChanged = new automate.Message();
+        this.initialize();
+    }
+
+    initialize() {
+        var langKey = this.resolveBrowserLanguage();
+
+        if (langKey) {
+            this.availableLanguageKeys.push(langKey);
+            this.setLocale(langKey);
+        }
     }
 
     resolveBrowserLanguage() {
@@ -56,7 +69,11 @@ export class TranslateService extends automate.Service {
         }
 
         this.currentLanguageKey = langKey;
-        automate.events.translateChanged.fire();
+
+        this.$loader.load(langKey).then(res => {
+            this.registerTranslation(langKey, res.data);
+            automate.events.refreshView.fire();
+        });
     }
 
     setAvailableLanguageKeys(langKeys) {
@@ -68,7 +85,7 @@ export class TranslateService extends automate.Service {
     }
 
     getTranslationTable(langKey) {
-        if(this.translationTable[langKey] == null) {
+        if (this.translationTable[langKey] == null) {
             this.translationTable[langKey] = {};
         }
         return this.translationTable[langKey];

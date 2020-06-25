@@ -7,7 +7,11 @@
 </head>
 <body>
     <div id="app">
-        <div>{{ state.value | translate }}</div>
+        <button @click="cn()">{{ 'chinese' | translate }}</button>
+        <button @click="en()">{{ 'english' | translate }}</button>
+        <div>{{ 'username' | translate }}</div>
+        <div>{{ 'password' | translate }}</div>
+        <button *m-bind="'commit' | translate"></button>
     </div>
 
     <script src="./lib/automate.js"></script>
@@ -17,11 +21,13 @@
 
         automate.namespace('sample').render('#app', {
             construct: function() {
-                this.state.value = 'english';
-
-                this.$translate.registerTranslation('zh-CN', {
-                    english: '英语'
-                });
+                this.$translate.setAvailableLanguageKeys(['en', 'zh-CN']);
+            },
+            en: function() {
+                this.$translate.setLocale('en');
+            },
+            cn: function() {
+                this.$translate.setLocale('zh-CN');
             }
         }, {
             inject: {
